@@ -41,6 +41,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
+
+      - name: Cache sccache and cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/sccache
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-sccache-${{ matrix.platform.target }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-sccache-${{ matrix.platform.target }}-
+            ${{ runner.os }}-cargo-sccache-
+            ${{ runner.os }}-
+
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
@@ -52,7 +67,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist -i python3.13t
+          args: --release --out dist -i python3.13t #python 3.12?
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: auto
       - name: Upload wheels
@@ -201,11 +216,11 @@ jobs:
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: 'wheels-*/*'
-      - name: Publish to PyPI
+      - name: Create GitHub Release and upload artifacts
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
-        uses: PyO3/maturin-action@v1
+        uses: softprops/action-gh-release@v1
         env:
-          MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          command: upload
-          args: --non-interactive --skip-existing wheels-*/*
+          tag_name: ${{ github.ref_name }}
+          files: 'wheels-*/*'

@@ -1,0 +1,15 @@
+[package]
+name = "lppm_expr"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "lppm_expr"
+crate-type = ["cdylib"]
+
+[dependencies]
+polars = { version = "*" }
+pyo3 = { version = "*", features = ["extension-module", "abi3-py38"] }
+pyo3-polars = { version = "*", features = ["derive"] }
+serde = { version = "*", features = ["derive"] }

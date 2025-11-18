@@ -24,11 +24,11 @@ def stateful_acc(expr: IntoExpr) -> pl.Expr:
         use_abs_path=False,
     )
 
-def cum_sum_weighted(expr: IntoExpr) -> pl.Expr:
+def vertical_scan(expr: IntoExpr) -> pl.Expr:
     return register_plugin_function(
         args=expr,
         plugin_path=PLUGIN_PATH,
-        function_name="cum_sum_weighted",
+        function_name="vertical_scan",
         is_elementwise=False,
         changes_length=False,
         returns_scalar=False,

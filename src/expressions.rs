@@ -20,7 +20,7 @@ fn stateful_acc(inputs: &[Series]) -> PolarsResult<Series> {
 }
 
 #[polars_expr(output_type=Float64)]
-fn cum_sum_weighted(inputs: &[Series]) -> PolarsResult<Series> {
+fn vertical_scan(inputs: &[Series]) -> PolarsResult<Series> {
     const NEW_WEIGHT: f64 = 0.03;
     let old_weight: f64 = (1.0 - NEW_WEIGHT * NEW_WEIGHT).sqrt();
     let s = &inputs[0];
@@ -34,7 +34,7 @@ fn cum_sum_weighted(inputs: &[Series]) -> PolarsResult<Series> {
                 *state = *state * old_weight + x * NEW_WEIGHT;
                 Some(Some(*state))
             }
-            None => Some(None),
+            None => Some(Some(*state)),
         })
         .collect_trusted();
     Ok(out.into_series())

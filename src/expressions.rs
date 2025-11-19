@@ -1,6 +1,7 @@
 use polars::prelude::*;
 use pyo3_polars::derive::polars_expr;
 use pyo3_polars::export::polars_core::utils::CustomIterTools;
+use rand_distr::{Distribution, Normal};
 
 #[polars_expr(output_type=Float64)]
 fn stateful_acc(inputs: &[Series]) -> PolarsResult<Series> {
@@ -25,7 +26,10 @@ fn vertical_scan(inputs: &[Series]) -> PolarsResult<Series> {
     let old_weight: f64 = (1.0 - NEW_WEIGHT * NEW_WEIGHT).sqrt();
     let s = &inputs[0];
     // init state is first value of series, which we unwrap safely because it can't be null
-    let init_state: f64 = s.f64()?.get(0).unwrap();
+    let init_state: f64 = s
+        .f64()?
+        .get(0)
+        .expect("First value of vertical scan can't be null");
     let ca: &Float64Chunked = s.f64()?;
     let out: Float64Chunked = ca
         .iter()
@@ -37,5 +41,15 @@ fn vertical_scan(inputs: &[Series]) -> PolarsResult<Series> {
             None => Some(Some(*state)),
         })
         .collect_trusted();
+    Ok(out.into_series())
+}
+
+#[polars_expr(output_type=Float64)]
+fn lazy_fill_random(inputs: &[Series]) -> PolarsResult<Series> {
+    let s = &inputs[0];
+    let length = s.len();
+    let mut rng = rand::rng();
+    let normal = Normal::new(0.0, 1.0).unwrap();
+    let out: Float64Chunked = (0..length).map(|_| Some(normal.sample(&mut rng))).collect();
     Ok(out.into_series())
 }

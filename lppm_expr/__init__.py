@@ -37,3 +37,17 @@ def vertical_scan(expr: IntoExpr) -> pl.Expr:
         pass_name_to_apply=False,
         use_abs_path=False,
     )
+
+def lazy_fill_random(expr: IntoExpr) -> pl.Expr:
+    return register_plugin_function(
+        args=expr,
+        plugin_path=PLUGIN_PATH,
+        function_name="lazy_fill_random",
+        is_elementwise=True,
+        changes_length=False,
+        returns_scalar=False,
+        cast_to_supertype=False,
+        input_wildcard_expansion=False,
+        pass_name_to_apply=False,
+        use_abs_path=False,
+    )

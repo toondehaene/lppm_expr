@@ -87,3 +87,36 @@ def is_social_link(
         pass_name_to_apply=False,
         use_abs_path=False,
     )
+
+def is_social_link_par(
+    row_idx: IntoExpr,
+    user_id: IntoExpr,
+    lon_rad: IntoExpr,
+    lat_rad: IntoExpr,
+    event_start: IntoExpr,
+    event_end: IntoExpr,
+    offset: IntoExpr,
+    *,
+    threshold: float,
+) -> pl.Expr:
+    return register_plugin_function(
+        args=[
+            row_idx,
+            user_id,
+            lon_rad,
+            lat_rad,
+            event_start,
+            event_end,
+            offset,
+        ],
+        kwargs={"threshold": threshold},
+        plugin_path=PLUGIN_PATH,
+        function_name="is_social_link",
+        is_elementwise=False,
+        changes_length=True,
+        returns_scalar=False,
+        cast_to_supertype=False,
+        input_wildcard_expansion=False,
+        pass_name_to_apply=False,
+        use_abs_path=False,
+    )

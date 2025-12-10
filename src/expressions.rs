@@ -1,9 +1,11 @@
+use itertools::Itertools;
 use polars::prelude::*;
 use pyo3_polars::derive::polars_expr;
 use pyo3_polars::export::polars_core::utils::rayon::iter::{
     IntoParallelIterator, ParallelIterator,
 };
 use pyo3_polars::export::polars_core::utils::CustomIterTools;
+use pyo3_polars::export::polars_plan::dsl::lit;
 use rand_distr::{Distribution, Normal};
 use serde::Deserialize;
 
@@ -87,9 +89,7 @@ fn is_social_link_par(inputs: &[Series], kwargs: AddThresholdKwargs) -> PolarsRe
             let time_end1 = unsafe { event_end.get_unchecked(i).unwrap() };
             let offset_i = unsafe { offset.get_unchecked(i).unwrap() as usize };
 
-            (i..offset_i)
-            .into_par_iter()
-            .filter_map(move |j| {
+            (i..offset_i).into_par_iter().filter_map(move |j| {
                 let user2 = unsafe { user_id.get_unchecked(j).unwrap() };
                 if user1 == user2 {
                     return None;
@@ -125,7 +125,8 @@ fn is_social_link_par(inputs: &[Series], kwargs: AddThresholdKwargs) -> PolarsRe
 #[polars_expr(output_type_func=is_social_link_output)]
 fn is_social_link(inputs: &[Series], kwargs: AddThresholdKwargs) -> PolarsResult<Series> {
     let threshold = kwargs.threshold;
-    let row_idx = inputs[0].u32()?;
+    // let row_idx = inputs[0].u32()?;
+    // let lowest_idx = row_idx.min().unwrap();
     let user_id = inputs[1].i32()?;
     let lon_rad = inputs[2].f32()?;
     let lat_rad = inputs[3].f32()?;
@@ -133,9 +134,16 @@ fn is_social_link(inputs: &[Series], kwargs: AddThresholdKwargs) -> PolarsResult
     let event_end = inputs[5].i32()?;
     let offset = inputs[6].u32()?;
 
-    let len = row_idx.len();
+    // let event_end_vec = event_end.into_no_null_iter();
+    // let event_start_vec = event_start.into_no_null_iter().collect_vec();
+    // let offset: ChunkedArray<UInt32Type> = inputs[6].u32()?.into_no_null_iter().map(|v| v - lowest_idx).collect_ca("".into());
 
-    let ((user1_vec, user2_vec), time_vec): ((Vec<_>, Vec<_>), Vec<_>) = (0..len)
+    // calculate offsets with partition_point between time_start1 and time_end1
+    // let offset = event_end_vec
+    //     .map(|end| event_start_vec.partition_point(|&start| start <= end))
+    //     .collect_vec();
+
+    let ((user1_vec, user2_vec), time_vec): ((Vec<_>, Vec<_>), Vec<_>) = (0..lon_rad.len())
         // .into_par_iter()
         .flat_map(|i| {
             // SAFETY: bounds checked by iterator
@@ -144,8 +152,13 @@ fn is_social_link(inputs: &[Series], kwargs: AddThresholdKwargs) -> PolarsResult
             let lat1 = unsafe { lat_rad.get_unchecked(i).unwrap() };
             let time_start1 = unsafe { event_start.get_unchecked(i).unwrap() };
             let time_end1 = unsafe { event_end.get_unchecked(i).unwrap() };
+            // let offset_i = offset[i] as usize;
             let offset_i = unsafe { offset.get_unchecked(i).unwrap() as usize };
 
+            assert!(
+                offset_i >= i,
+                "Offset must be greater than or equal to current row index"
+            );
             (i..offset_i)
                 // .into_par_iter()
                 .filter_map(move |j| {

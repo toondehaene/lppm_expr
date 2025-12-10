@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import polars as pl
 from polars.plugins import register_plugin_function
-from polars._typing import IntoExpr
+from polars._typing import IntoExpr, IntoExprColumn
 
 PLUGIN_PATH = Path(__file__).parent
 
@@ -52,7 +52,7 @@ def lazy_fill_random(expr: IntoExpr) -> pl.Expr:
         use_abs_path=False,
     )
 
-def is_social_link(expr: IntoExpr) -> pl.Expr:
+def is_social_link(expr: IntoExprColumn, *, threshold: float) -> pl.Expr:
     return register_plugin_function(
         args=expr,
         plugin_path=PLUGIN_PATH,

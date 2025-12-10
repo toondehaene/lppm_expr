@@ -24,6 +24,7 @@ def stateful_acc(expr: IntoExpr) -> pl.Expr:
         use_abs_path=False,
     )
 
+
 def vertical_scan(expr: IntoExpr) -> pl.Expr:
     return register_plugin_function(
         args=expr,
@@ -37,6 +38,7 @@ def vertical_scan(expr: IntoExpr) -> pl.Expr:
         pass_name_to_apply=False,
         use_abs_path=False,
     )
+
 
 def lazy_fill_random(expr: IntoExpr) -> pl.Expr:
     return register_plugin_function(
@@ -52,9 +54,29 @@ def lazy_fill_random(expr: IntoExpr) -> pl.Expr:
         use_abs_path=False,
     )
 
-def is_social_link(expr: IntoExprColumn, *, threshold: float) -> pl.Expr:
+
+def is_social_link(
+    row_idx: IntoExpr,
+    user_id: IntoExpr,
+    lon_rad: IntoExpr,
+    lat_rad: IntoExpr,
+    event_start: IntoExpr,
+    event_end: IntoExpr,
+    offset: IntoExpr,
+    *,
+    threshold: float,
+) -> pl.Expr:
     return register_plugin_function(
-        args=expr,
+        args=[
+            row_idx,
+            user_id,
+            lon_rad,
+            lat_rad,
+            event_start,
+            event_end,
+            offset,
+        ],
+        kwargs={"threshold": threshold},
         plugin_path=PLUGIN_PATH,
         function_name="is_social_link",
         is_elementwise=False,

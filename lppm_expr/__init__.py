@@ -51,3 +51,17 @@ def lazy_fill_random(expr: IntoExpr) -> pl.Expr:
         pass_name_to_apply=False,
         use_abs_path=False,
     )
+
+def is_social_link(expr: IntoExpr) -> pl.Expr:
+    return register_plugin_function(
+        args=expr,
+        plugin_path=PLUGIN_PATH,
+        function_name="is_social_link",
+        is_elementwise=False,
+        changes_length=True,
+        returns_scalar=False,
+        cast_to_supertype=False,
+        input_wildcard_expansion=False,
+        pass_name_to_apply=False,
+        use_abs_path=False,
+    )

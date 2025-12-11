@@ -9,7 +9,6 @@ name = "lppm_expr"
 crate-type = ["cdylib"]
 
 [dependencies]
-indicatif = {version = "0.18.3", features = ["rayon"] }
 itertools = "0.14.0"
 polars = { version = "*", features = ["dtype-struct"]}
 pyo3 = { version = "*", features = ["extension-module", "abi3-py38"] }
